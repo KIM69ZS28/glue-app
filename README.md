@@ -1,17 +1,21 @@
 # glue-app
 
-## Overview
-This project is a data analysis platform portfolio that integrates AWS Glue with AI capabilities (specifically AWS Bedrock).
+## 概要
+このプロジェクトは、AWS GlueとAI機能（具体的にはAWS Bedrock）を統合したデータ分析プラットフォームのポートフォリオです。
 
-## Architecture
-- **Infrastructure**: Managed via Terraform (`infra/`)
-- **ETL Jobs**: AWS Glue scripts (`src/`)
-- **AI Integration**: Uses boto3 to interact with AWS Bedrock for advanced data processing.
+## アーキテクチャ
+- **インフラストラクチャ**: Terraformで管理 (`infra/`)
+- **ETLジョブ**: AWS Glueスクリプト (`src/`)
+- **AI統合**: boto3を使用してAWS Bedrockと対話し、高度なデータ処理を行います。
 
-## Structure
-- `diagrams/`: Architecture diagrams
-- `infra/`: Terraform configurations
-- `src/`: Source code for Glue jobs and Lambda functions
-- `data/`: Sample data
-- `tests/`: Unit and integration tests
-- `docs/adr/`: Architecture Decision Records
+## 構成図
+![アーキテクチャ図](diagrams/glue-app.png)
+[構成図 (Draw.io)](diagrams/glue-app.drawio)
+
+## ディレクトリ構成
+- `diagrams/`: アーキテクチャ図
+- `infra/`: Terraform設定ファイル
+- `src/`: GlueジョブおよびLambda関数のソースコード
+- `data/`: サンプルデータ
+- `tests/`: ユニットテストおよび統合テスト
+- `docs/adr/`: アーキテクチャ決定記録 (ADR)
