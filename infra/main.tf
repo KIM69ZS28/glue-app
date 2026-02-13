@@ -50,13 +50,21 @@ resource "aws_security_group" "rds_sg" {
   description = "Allow inbound traffic from Glue (Self-reference)"
   vpc_id      = aws_vpc.main.id
 
-  # 同一SGを持つリソースからの5432ポートを許可
+  # 1. 同一SG間でのRDS通信を許可
   ingress {
     from_port = 5432
     to_port   = 5432
     protocol  = "tcp"
-    self      = true 
+    self      = true
   }
+
+  # # 2. 同一SG間（EC2とSSMエンドポイント間）でのHTTPS通信を許可 
+  # ingress {
+  #   from_port = 443
+  #   to_port   = 443
+  #   protocol  = "tcp"
+  #   self      = true
+  # }
 
   egress {
     from_port   = 0
@@ -72,7 +80,7 @@ resource "aws_security_group" "rds_sg" {
 
 # --- 5. RDS PostgreSQL インスタンス (Gold層) ---
 resource "aws_db_instance" "gold_db" {
-identifier = "glue-app-db"
+  identifier             = "glue-app-db"
   allocated_storage      = 20 # 無料枠の上限(20GB)に設定
   max_allocated_storage  = 20 # 自動拡張による予期せぬ課金を防止
   engine                 = "postgres"
@@ -85,9 +93,9 @@ identifier = "glue-app-db"
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 
   # 運用・コスト設定
-  multi_az               = false # 無料枠を維持するためSingle-AZ
-  publicly_accessible    = false # 外部からの接続を遮断
-  skip_final_snapshot    = false # 削除時にスナップショットを残す
+  multi_az                  = false # 無料枠を維持するためSingle-AZ
+  publicly_accessible       = false # 外部からの接続を遮断
+  skip_final_snapshot       = false # 削除時にスナップショットを残す
   final_snapshot_identifier = "${var.project_name}-final-snapshot"
 
   tags = {
