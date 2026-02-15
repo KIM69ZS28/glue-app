@@ -23,11 +23,23 @@ datasource = glueContext.create_dynamic_frame.from_options(
     transformation_ctx="datasource"
 )
 
-# --- 2. RDS (PostgreSQL) への書き込み ---
-# 'glue-app-connection' という名前のコネクションを後ほど定義します
-glueContext.write_dynamic_frame.from_jdbc_conf(
+# --- 2. 型変換 (ApplyMapping) ---
+# ここで 'price' カラムを string から int に変換します
+mapped_datasource = ApplyMapping.apply(
     frame=datasource,
-    catalog_connection="glue-app-connection", # Terraformで作成したコネクション名
+    mappings=[
+        ("product_name", "string", "product_name", "string"),
+        ("category", "string", "category", "string"),
+        ("price", "string", "price", "int") # ← ここで数値型にキャスト
+    ],
+    transformation_ctx="mapped_datasource"
+)
+
+# --- 3. RDS (PostgreSQL) への書き込み ---
+# frame を 'mapped_datasource' に差し替えます
+glueContext.write_dynamic_frame.from_jdbc_conf(
+    frame=mapped_datasource,
+    catalog_connection="glue-app-connection",
     connection_options={
         "dbtable": "products",
         "database": "gold_db"
