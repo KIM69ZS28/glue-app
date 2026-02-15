@@ -102,3 +102,40 @@ resource "aws_db_instance" "gold_db" {
     Name = "${var.project_name}-rds"
   }
 }
+
+# --- 6. ルートテーブルの設定 ---
+# サブネットが「S3への行き方」を知るための地図を作成します
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.project_name}-private-rt"
+  }
+}
+
+# サブネット A をルートテーブルに紐付け
+resource "aws_route_table_association" "private_a" {
+  subnet_id      = aws_subnet.private_a.id
+  route_table_id = aws_route_table.private.id
+}
+
+# サブネット C をルートテーブルに紐付け
+resource "aws_route_table_association" "private_c" {
+  subnet_id      = aws_subnet.private_c.id
+  route_table_id = aws_route_table.private.id
+}
+
+# --- 7. S3 ゲートウェイエンドポイント ---
+# 構成図 ⑤ に該当：NAT Gateway（有料）を使わずにS3と通信するための専用路です
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+
+  # 作成したルートテーブルに、S3行きのルートを自動的に書き込みます
+  route_table_ids = [aws_route_table.private.id]
+
+  tags = {
+    Name = "${var.project_name}-s3-gw"
+  }
+}
