@@ -35,6 +35,53 @@
 7. **最終データロード（Gold層 / RDS）**
    最終的に、業務利用やBIツールからの参照に適した形に集計・加工されたデータが、RDS（Gold層：PostgreSQL） へロードされます。マルチAZ構成のRDSを採用することで、データの高可用性と耐久性を確保した分析基盤を構築しています。
 
+## RDSへの診断接続手順
+
+開発・デバッグ時にRDSへ直接接続する必要がある場合、以下の手順で一時的な診断環境を構築できます。
+
+### 前提条件
+- AWS CLI がインストールされていること
+- Session Manager Plugin がインストールされていること
+- PostgreSQL クライアント（`psql`）がインストールされていること
+
+### 接続手順
+
+1. **診断用リソースの有効化**
+   ```bash
+   # infra/diag.tf と infra/outputs.tf のコメントアウトを解除
+   # （既に解除済みの場合はスキップ）
+   ```
+
+2. **インフラのデプロイ**
+   ```bash
+   cd infra
+   terraform plan  # 変更内容を確認
+   terraform apply
+   ```
+
+3. **ポートフォワーディングセッションの開始**
+   ```bash
+   # terraform output で取得した値を使用
+   aws ssm start-session --target <インスタンスID> \
+     --document-name AWS-StartPortForwardingSessionToRemoteHost \
+     --parameters '{"host":["<RDSのエンドポイント>"],"portNumber":["5432"],"localPortNumber":["15432"]}'
+   ```
+
+4. **PostgreSQLへの接続**（新しいターミナルで実行）
+   ```bash
+   psql -h localhost -p 15432 -U postgres_admin -d gold_db
+   ```
+
+5. **作業完了後のクリーンアップ**
+   ```bash
+   # 診断用リソースを削除してコストを削減
+   # infra/diag.tf と infra/outputs.tf をコメントアウトして再度 apply
+   cd infra
+   terraform apply
+   ```
+
+> **注意**: 診断用EC2インスタンスは使用していない時はコメントアウトして削除することを推奨します。
+
 ## ディレクトリ構成
 - `diagrams/`: アーキテクチャ図
 - `infra/`: Terraform設定ファイル
