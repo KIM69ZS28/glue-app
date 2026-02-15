@@ -52,10 +52,10 @@ resource "aws_security_group" "rds_sg" {
 
   # 1. 同一SG間でのRDS通信を許可
   ingress {
-    from_port = 5432
-    to_port   = 5432
-    protocol  = "tcp"
-    self      = true
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1" # すべてのプロトコル
+    self      = true # 同じSGを持つもの同士は何でもOK
   }
 
   # # 2. 同一SG間（EC2とSSMエンドポイント間）でのHTTPS通信を許可 
