@@ -25,14 +25,13 @@ datasource = glueContext.create_dynamic_frame.from_options(
 
 # --- 2. RDS (PostgreSQL) への書き込み ---
 # 'glue-app-connection' という名前のコネクションを後ほど定義します
-glueContext.write_dynamic_frame.from_options(
+glueContext.write_dynamic_frame.from_jdbc_conf(
     frame=datasource,
-    connection_type="postgresql",
+    catalog_connection="glue-app-connection", # Terraformで作成したコネクション名
     connection_options={
-        "connectionName": "glue-app-connection",
-        "dbtable": "products"
-    },
-    transformation_ctx="datasink"
+        "dbtable": "products",
+        "database": "gold_db"
+    }
 )
 
 job.commit()
